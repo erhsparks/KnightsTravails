@@ -1,5 +1,5 @@
 class PolyTreeNode
-  attr_reader :parent, :value
+  attr_reader :parent, :children, :value
 
   def initialize(value)
     @value = value
@@ -7,15 +7,34 @@ class PolyTreeNode
     @children = []
   end
 
-  def parent=(node)
-    return if @parent == node
-    @parent._children.delete(self) unless @parent.nil?
-    @parent = node
-    @parent._children << self unless @parent.nil?
+  def dfs(target_value)
+    return self if @value == target_value
+
+    @children.each do |child|
+      found_node = child.dfs(target_value)
+      return found_node if !found_node.nil? && found_node.value == target_value
+    end
+
+    nil
   end
 
-  def children
-    @children.dup
+  def bfs(target_value)
+    queue = [self]
+    until queue.empty?
+      test_node = queue.shift
+      return test_node if test_node.value == target_value
+
+      queue += test_node.children
+    end
+
+    nil
+  end
+
+  def parent=(node)
+    return if @parent == node
+    @parent.children.delete(self) unless @parent.nil?
+    @parent = node
+    @parent.children << self unless @parent.nil?
   end
 
   def add_child(child_node)
@@ -25,12 +44,5 @@ class PolyTreeNode
   def remove_child(child_node)
     raise unless @children.include?(child_node) || child_node.nil?
     child_node.parent = nil
-  end
-
-  protected
-  # Protected method to give a node direct access to another node's
-  # children.
-  def _children
-    @children
   end
 end
